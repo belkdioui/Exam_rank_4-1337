@@ -49,7 +49,7 @@ int pipe_cmd(int i, int j, char **av, char **envp)
     new_av[h] = NULL;
     sv = new_av;
     save_pipes = pipes;
-    while (pipes >= 0) 
+    while (pipes >= 0 && sv && *sv) 
     {
         idx = 0;
         if (pipes)
@@ -85,7 +85,6 @@ int pipe_cmd(int i, int j, char **av, char **envp)
                 write(2, "\n", 1);
                 exit(0);
             }
-            // perror("error ");
         }
         else 
         {
@@ -129,7 +128,7 @@ void semi_col(int i, int j, char **av, char **envp)
     if (pid == 0)
     {
         execve(av[i], new_av, envp);
-        perror("error ");
+        // perror("error ");
         exit(0);
     }
     else {
@@ -148,6 +147,19 @@ int main(int ac, char **av, char **envp)
     {
         while(i < ac)
         {
+            if (!strcmp(av[i], "cd")) 
+            {
+                if (!av[i + 1] || !strcmp(av[i + 1], "|") || !strcmp(av[i + 1], ";"))
+                {
+                    write(2, "error: cd: bad arguments\n", 25);
+                }
+                else if (chdir(av[i + 1]) != 0)
+                {
+                     write(2, "error: cd: cannot change directory to ", 38);
+                     write(2, av[i + 1], strlen(av[i + 1]));
+                     write(2, "\n", 1);
+                }
+            }
             while (av[j] && strcmp(av[j], ";"))
                 j++;
             if ((av[j] && !strcmp(av[j], ";")) || av[j] == NULL)
